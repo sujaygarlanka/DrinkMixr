@@ -4,13 +4,12 @@ import {
     StyleSheet
   } from 'react-native';
 import {Block, Text} from 'galio-framework';
-import theme from '../constants/theme';
 
 export default class Title extends Component {
     render (){
         return (
-            <View left style={styles.title}>
-                <Text h3 style={{fontWeight: '300'}}>{this.props.title}</Text>
+            <View style={styles.title}>
+                <Text h4 style={{fontWeight: '300'}}>{this.props.title}</Text>
             </View>
         );
     }
@@ -21,6 +20,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     width: '60%',
     paddingLeft: '5%',
-    marginBottom: 15,
+    marginBottom: 15
   }
 });

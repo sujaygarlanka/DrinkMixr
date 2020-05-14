@@ -10,12 +10,12 @@ import React, {Component} from 'react';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import theme from './constants/theme';
 import Login from './screens/Login';
 import Recipe from './screens/Recipe';
-import Profile from './screens/Profile';
+import Settings from './screens/Settings';
 
 const Tab = createBottomTabNavigator();
 const Auth = createStackNavigator();
@@ -41,12 +41,12 @@ function App() {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={Profile}
+        name="Settings"
+        component={Settings}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: 'Settings',
           tabBarIcon: ({color, size}) => (
-            <AntDesign name="user" color={color} size={size} />
+            <SimpleLineIcons name="settings" color={color} size={size} />
           ),
         }}
       />
