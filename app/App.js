@@ -12,9 +12,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import theme from './constants/theme';
 import Login from './screens/Login';
 import Recipe from './screens/Recipe';
+import SavedRecipes from './screens/SavedRecipes';
 import Settings from './screens/Settings';
 
 const Tab = createBottomTabNavigator();
@@ -37,6 +39,15 @@ function App() {
         options={{
           tabBarIcon: ({color, size}) => (
             <MaterialCommunityIcons name="cup" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Saved Recipes"
+        component={SavedRecipes}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <MaterialCommunityIcons name="format-list-bulleted" color={color} size={size} />
           ),
         }}
       />

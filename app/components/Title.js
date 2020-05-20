@@ -19,8 +19,8 @@ export default class Title extends Component {
 const styles = StyleSheet.create({
   title: {
     alignItems: 'flex-start',
-    width: '60%',
+    width: '70%',
     paddingLeft: '5%',
-    marginBottom: 15,
+    marginBottom: 15
   }
 });
