@@ -1,32 +1,28 @@
 import React, {Component} from 'react';
-import {
-  StyleSheet,
-  View,
-} from 'react-native';
-import {Button, Text, Input, Slider, Icon} from 'galio-framework';
+import {StyleSheet, View} from 'react-native';
+import {connect} from 'react-redux';
+import {Button, Text, Icon} from 'galio-framework';
+import Slider from '@react-native-community/slider';
 import NfcManager, {NfcEvents} from 'react-native-nfc-manager';
 import theme from '../constants/theme';
 import constants from '../constants/constants';
-import Title from '../components/Title';
-import Dialog from 'react-native-dialog';
-
-const username = 'Sujay Garlanka';
+import {sendRecipe, saveRecipe, deleteRecipe} from '../actions/actions';
 
 class EditRecipe extends Component {
   constructor(props) {
     super(props);
     let recipeName = this.props.route.params.recipe.name;
-    delete this.props.route.params.recipe.name;
-    let recipe = this.props.route.params.recipe;
+    let recipe = JSON.parse(JSON.stringify(this.props.route.params.recipe));
+    delete recipe.name;
     let ingredients = this.props.route.params.ingredients;
-    let shouldDisable = !Object.keys(recipe).every(ingredient => ingredients.includes(ingredient));
-    console.log(shouldDisable)
+    let shouldDisable = !Object.keys(recipe).every(ingredient =>
+      ingredients.includes(ingredient),
+    );
     this.state = {
       recipeName,
       recipe,
       ingredients,
-      maximumRecipeValue: 17,
-      refreshing: false,
+      isLoading: false,
       shouldDisable,
     };
   }
@@ -34,9 +30,8 @@ class EditRecipe extends Component {
   componentDidMount() {
     NfcManager.start();
     NfcManager.setEventListener(NfcEvents.DiscoverTag, tag => {
-      this.setState({tag: tag.ndefMessage[0].payload});
       // NfcManager.setAlertMessageIOS('I got your tag!');
-      this.sendRecipe(tag.ndefMessage[0].payload);
+      this.props.sendRecipe(tag.ndefMessage[0].payload, this.state.recipe, false);
       NfcManager.unregisterTagEvent().catch(() => 0);
     });
   }
@@ -47,7 +42,9 @@ class EditRecipe extends Component {
   }
 
   render() {
-    let saveButtonColor = this.state.shouldDisable ? theme.COLORS.GREY : theme.COLORS.PRIMARY;
+    let sendButtonColor = this.state.shouldDisable
+      ? theme.COLORS.GREY
+      : theme.COLORS.PRIMARY;
     return (
       <View style={{flex: 1}}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -62,17 +59,17 @@ class EditRecipe extends Component {
               color={theme.COLORS.PRIMARY}
             />
           </Button>
-          <Text h3 style={{fontWeight: '300', paddingLeft: '5%'}}>
+          <Text h3 style={{fontWeight: '300', paddingLeft: '0%'}}>
             Edit Recipe
           </Text>
         </View>
         <View style={{flex: 4}}>{this.getSliderView()}</View>
         <View style={{flex: 2, justifyContent: 'center', alignItems: 'center'}}>
           <Button
-            color={saveButtonColor}
-            shadowColor={saveButtonColor}
+            color={sendButtonColor}
+            shadowColor={sendButtonColor}
             round
-            disabled={true}
+            disabled={this.state.shouldDisable}
             onPress={this.detectMachine}>
             Send
           </Button>
@@ -80,7 +77,17 @@ class EditRecipe extends Component {
             color={theme.COLORS.INFO}
             shadowColor={theme.COLORS.INFO}
             round
-            onPress={this.saveRecipe}
+            loading={this.state.isLoading}
+            onPress={async () => {
+              this.setState({isLoading: true});
+              let recipe = Object.assign(
+                {name: this.state.recipeName},
+                this.state.recipe,
+              );
+              await this.props.saveRecipe(recipe);
+              this.setState({isLoading: false});
+              this.props.navigation.navigate('Recipes');
+            }}
             style={{marginTop: 15}}>
             Save
           </Button>
@@ -88,7 +95,10 @@ class EditRecipe extends Component {
             color={theme.COLORS.ERROR}
             shadowColor={theme.COLORS.ERROR}
             round
-            onPress={this.deleteRecipe}
+            onPress={async () => {
+              await this.props.deleteRecipe(this.state.recipeName);
+              this.props.navigation.navigate('Recipes');
+            }}
             style={{marginTop: 15}}>
             Delete
           </Button>
@@ -115,11 +125,11 @@ class EditRecipe extends Component {
           <View style={{flexDirection: 'row'}}>
             <View style={{flex: 4, paddingLeft: 10}}>
               <Slider
-                activeColor={colors[index]}
-                maximumValue={this.maximumRecipeValue}
+                minimumTrackTintColor={colors[index]}
+                maximumValue={constants.MAXIMUM_DISPENSE_AMOUNT}
                 value={value}
                 step={0.1}
-                thumbStyle={{borderColor: colors[index]}}
+                // thumbStyle={{borderColor: colors[index]}}
                 onValueChange={value => {
                   let {recipe} = this.state;
                   recipe[ingredient] = Math.round(value * 100) / 100;
@@ -151,47 +161,31 @@ class EditRecipe extends Component {
       NfcManager.unregisterTagEvent().catch(() => 0);
     }
   };
+}
 
-  saveRecipe = () => {
-    let body = this.state.recipe;
-    fetch(constants.API + '/recipes?user_name=' + username, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }).catch(error => console.log(error));
-  };
+function mapStateToProps(state) {
+  return {};
+}
 
-  sendRecipe = async tag => {
-    tagString = '';
-    for (var i = 3; i < tag.length; i++) {
-      tagString += String.fromCharCode(tag[i]);
-    }
-    if (tagString == 'drink_mixr') {
-      let body = {
-        user_name: username,
-        order: this.state.recipe,
-      };
-      fetch(API + '/order', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      }).catch(error => console.log(error));
-    }
+function mapDispatchToProps(dispatch) {
+  return {
+    sendRecipe: (tag, recipe, priming) => dispatch(sendRecipe(tag, recipe, priming)),
+    saveRecipe: recipe => dispatch(saveRecipe(recipe)),
+    deleteRecipe: recipeName => dispatch(deleteRecipe(recipeName)),
+    set: data => dispatch({type: 'SET', data: data}),
   };
 }
 
-export default EditRecipe;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(EditRecipe);
 
 const styles = StyleSheet.create({
   backButton: {
-    width: theme.SIZES.BASE,
+    width: '10%',
     backgroundColor: 'transparent',
     elevation: 0,
+    alignItems: 'flex-start',
   },
 });

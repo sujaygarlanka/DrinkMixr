@@ -1,39 +1,59 @@
 import React, {Component} from 'react';
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
-import {Button, Text, Input, Block, Radio, Slider} from 'galio-framework';
+import {StyleSheet, View, ScrollView, RefreshControl} from 'react-native';
+import {connect} from 'react-redux';
+import Slider from '@react-native-community/slider';
+import {Button, Text} from 'galio-framework';
 import NfcManager, {NfcEvents} from 'react-native-nfc-manager';
+import Dialog from 'react-native-dialog';
 import theme from '../constants/theme';
 import constants from '../constants/constants';
 import Title from '../components/Title';
-import Dialog from 'react-native-dialog';
-
-const username = "Sujay Garlanka";
+import {loadConfiguration, sendRecipe, saveRecipe, getRecipes} from '../actions/actions';
 
 class Recipe extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      ingredients: {},
       recipe: {},
-      refreshing: false,
+      showDialog: false,
+      isLoading: false,
+      recipeName: null,
+      priming: false,
     };
   }
 
-  componentDidMount() {
+  // Whenever error prop updates from any screen, show error page
+  componentDidUpdate(prevProps) {
+    if (this.props.error != null) {
+      this.props.navigation.navigate('Error');
+    }
+    if (JSON.stringify(Object.keys(prevProps.ingredients)) != JSON.stringify(Object.keys(this.props.ingredients))) {
+      this.setUpRecipeData(false);
+    }
+  }
+
+  async componentDidMount() {
     NfcManager.start();
     NfcManager.setEventListener(NfcEvents.DiscoverTag, tag => {
-      this.setState({tag: tag.ndefMessage[0].payload});
       // NfcManager.setAlertMessageIOS('I got your tag!');
-      this.sendRecipe(tag.ndefMessage[0].payload);
+      if (this.state.priming) {
+        this.props.sendRecipe(
+          tag.ndefMessage[0].payload,
+          this.getPrimingRecipe(),
+          this.state.priming,
+        );
+      } else {
+        this.props.sendRecipe(
+          tag.ndefMessage[0].payload,
+          this.state.recipe,
+          this.state.priming,
+        );
+      }
+      this.setState({priming: false});
+
       NfcManager.unregisterTagEvent().catch(() => 0);
     });
-    this.getConfigurationData();
+    this.setUpRecipeData(true);
   }
 
   componentWillUnmount() {
@@ -49,12 +69,55 @@ class Recipe extends Component {
         }}
         refreshControl={
           <RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={this.getConfigurationData}
+            refreshing={this.state.isLoading}
+            onRefresh={this.refreshPage}
           />
         }>
+        <Dialog.Container visible={this.state.showDialog}>
+          <Dialog.Title>Recipe Name</Dialog.Title>
+          <Dialog.Input
+            style={{color: 'black'}}
+            onChangeText={text => this.setState({recipeName: text})}
+          />
+          <Dialog.Button
+            label="Cancel"
+            onPress={() => this.setState({showDialog: false, recipeName: null})}
+          />
+          <Dialog.Button
+            label="Save"
+            onPress={async () => {
+              this.setState({showDialog: false, isLoading: true});
+              let recipe = Object.assign(
+                {name: this.state.recipeName},
+                this.state.recipe,
+              );
+              await this.props.saveRecipe(recipe);
+              this.setState({isLoading: false});
+            }}
+          />
+        </Dialog.Container>
         <View style={{flex: 1}}>
-          <Title title="Send Recipe" />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingRight: '5%',
+              marginTop: 15,
+            }}>
+            <Title title="Send Recipe" />
+            <Button
+              onlyIcon
+              icon="droplet"
+              iconFamily="feather"
+              iconSize={25}
+              color={theme.COLORS.PRIMARY}
+              shadowColor={theme.COLORS.PRIMARY}
+              iconColor="#fff"
+              style={{width: 60, height: 40}}
+              onPress={() => this.detectMachine(true)}
+            />
+          </View>
           <View style={{flex: 4}}>{this.getSliderView()}</View>
           <View
             style={{flex: 2, justifyContent: 'center', alignItems: 'center'}}>
@@ -62,15 +125,17 @@ class Recipe extends Component {
               color={theme.COLORS.PRIMARY}
               shadowColor={theme.COLORS.PRIMARY}
               round
-              onPress={this.detectMachine}>
+              onPress={() => this.detectMachine(false)}
+              text="Send">
               Send
             </Button>
             <Button
               color={theme.COLORS.INFO}
               shadowColor={theme.COLORS.INFO}
               round
-              onPress={this.saveRecipe}
-              style={{marginTop: 15}}>
+              onPress={() => this.setState({showDialog: true})}
+              style={{marginTop: 15}}
+              text="Save">
               Save
             </Button>
           </View>
@@ -88,7 +153,7 @@ class Recipe extends Component {
       theme.COLORS.ERROR,
       theme.COLORS.WARNING,
     ];
-    Object.entries(this.state.ingredients).map(([ingredient, value]) => {
+    Object.entries(this.props.ingredients).map(([ingredient, value]) => {
       sliders.push(
         <View style={{flex: 1, justifyContent: 'center'}}>
           <Text h5 style={{fontWeight: '300', padding: 10}}>
@@ -97,11 +162,11 @@ class Recipe extends Component {
           <View style={{flexDirection: 'row'}}>
             <View style={{flex: 4, paddingLeft: 10}}>
               <Slider
-                activeColor={colors[index]}
-                maximumValue={value.amount}
+                minimumTrackTintColor={colors[index]}
+                maximumValue={constants.MAXIMUM_DISPENSE_AMOUNT}
                 value={0}
                 step={0.1}
-                thumbStyle={{borderColor: colors[index]}}
+                style={{color: colors[index], borderRadius: 500}}
                 onValueChange={value => {
                   let {recipe} = this.state;
                   recipe[ingredient] = Math.round(value * 100) / 100;
@@ -125,67 +190,99 @@ class Recipe extends Component {
     return sliders;
   };
 
-  getConfigurationData = async () => {
-    this.setState({refreshing: true});
-    fetch(constants.API + '/configuration')
-      .then(response => response.json())
-      .then(responseJson => {
-        recipe = {};
-        Object.entries(responseJson.ingredients).map(([ingredient, value]) => {
-          recipe[ingredient] = 0;
-        });
-        this.setState({
-          ingredients: responseJson.ingredients,
-          recipe: recipe,
-          refreshing: false,
-        });
-      })
-      .catch(error => console.log(error)); //to catch the errors if any
+  refreshPage = () => {
+    this.setState({recipeName: null});
+    this.setUpRecipeData(true);
   };
 
-  detectMachine = async () => {
+  setUpRecipeData = async (loadFromAPI) => {
+    this.setState({isLoading: true});
+    let ingredients = null;
+    if (loadFromAPI == true) {
+      let response = await this.props.loadConfiguration();
+      ingredients = response.ingredients;
+      await this.props.getRecipes();
+    }
+    else {
+      ingredients = JSON.parse(JSON.stringify(this.props.ingredients));
+    }
+    let recipe = {};
+    Object.entries(ingredients).map(([ingredient, value]) => {
+      recipe[ingredient] = 0;
+    });
+    this.setState({
+      recipe: recipe,
+      isLoading: false,
+    });
+  };
+
+  getPrimingRecipe = () => {
+    let primeRecipe = {};
+    Object.entries(this.props.ingredients).map(([ingredient, value]) => {
+      primeRecipe[ingredient] = this.props.tubes[value.motor];
+    });
+    return primeRecipe;
+  };
+
+  detectMachine = async priming => {
+    await this.setState({priming});
     try {
       await NfcManager.registerTagEvent();
     } catch (ex) {
       console.warn('ex', ex);
       NfcManager.unregisterTagEvent().catch(() => 0);
     }
-  };
-
-  saveRecipe = () => {
-    let body = this.state.recipe;
-    fetch(constants.API + '/recipes?user_name=' + username, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }).catch(error => console.log(error));
-  };
-
-  sendRecipe = async tag => {
-    tagString = '';
-    for (var i = 3; i < tag.length; i++) {
-      tagString += String.fromCharCode(tag[i]);
-    }
-    if (tagString == 'drink_mixr') {
-      let body = {
-        user_name: username,
-        order: this.state.recipe,
-      };
-      fetch(API + '/order', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      }).catch(error => console.log(error));
-    }
+    // To test sending recipes
+    // if (this.state.priming) {
+    //   this.props.sendRecipe(
+    //     'drink_mixr',
+    //     this.getPrimingRecipe(),
+    //     this.state.priming,
+    //   );
+    // } else {
+    //   this.props.sendRecipe(
+    //     'drink_mixr',
+    //     this.state.recipe,
+    //     this.state.priming,
+    //   );
+    // }
+    // await this.setState({priming: false});
   };
 }
 
-export default Recipe;
+function mapStateToProps(state) {
+  return {
+    ingredients: state.ingredients,
+    motors: state.motors,
+    tubes: state.tubes,
+    error: state.error
+  };
+}
 
-const styles = StyleSheet.create({});
+function mapDispatchToProps(dispatch) {
+  return {
+    loadConfiguration: () => dispatch(loadConfiguration()),
+    sendRecipe: (tag, recipe, priming) =>
+      dispatch(sendRecipe(tag, recipe, priming)),
+    saveRecipe: recipe => dispatch(saveRecipe(recipe)),
+    getRecipes: () => dispatch(getRecipes()),
+    set: data => dispatch({type: 'SET', data: data}),
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Recipe);
+
+const styles = StyleSheet.create({
+  title: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '70%',
+    justifyContent: 'space-between',
+    paddingLeft: '5%',
+    paddingRight: '5%',
+    marginBottom: 15,
+  },
+});

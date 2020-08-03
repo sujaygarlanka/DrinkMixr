@@ -1,3 +1,5 @@
+// Trying to create a way to specify a recipe by animating the filling of a cup. 
+
 import React, {Component} from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
 import {Button, Text, Input, Block, Radio} from 'galio-framework';

@@ -7,20 +7,21 @@
  */
 
 import React, {Component} from 'react';
+import {connect} from 'react-redux';
+import {StatusBar} from 'react-native';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Feather from 'react-native-vector-icons/Feather';
 import theme from './constants/theme';
-import Login from './screens/Login';
+import Error from './screens/Error';
 import Recipe from './screens/Recipe';
 import SavedRecipes from './screens/SavedRecipes';
 import Settings from './screens/Settings';
 
 const Tab = createBottomTabNavigator();
-const Auth = createStackNavigator();
+const ErrorStack = createStackNavigator();
 
 const reactNavigationTheme = {
   ...DefaultTheme,
@@ -47,7 +48,11 @@ function App() {
         component={SavedRecipes}
         options={{
           tabBarIcon: ({color, size}) => (
-            <MaterialCommunityIcons name="format-list-bulleted" color={color} size={size} />
+            <MaterialCommunityIcons
+              name="format-list-bulleted"
+              color={color}
+              size={size}
+            />
           ),
         }}
       />
@@ -73,7 +78,8 @@ class DrinkMixr extends Component {
   render() {
     return (
       <NavigationContainer theme={reactNavigationTheme}>
-        <Auth.Navigator
+        <StatusBar barStyle="dark-content"/>
+        <ErrorStack.Navigator
           screenOptions={{
             headerTitle: '',
             headerStyle: {
@@ -81,26 +87,47 @@ class DrinkMixr extends Component {
               shadowColor: theme.COLORS.TRANSPARENT,
               shadowRadius: 0,
               shadowOffset: {
-                  height: 0,
-              }
+                height: 0,
+              },
+              height: 50,
             },
             headerTitleStyle: {
               fontWeight: 'normal',
             },
-          }}>
-          {true ? (
-            <Auth.Screen name="Drink Mixr" component={App}/>
-          ) : (
-            <Auth.Screen name="Login" component={Login} options = {{
+            headerLeft: null,
+          }}
+          mode="modal">
+          <ErrorStack.Screen name="Drink Mixr" component={App} />
+          <ErrorStack.Screen
+            name="Error"
+            component={Error}
+            options={{
               // When logging out, a pop animation feels intuitive
               // You can remove this if you want the default 'push' animation
-              animationTypeForReplace: 'pop',
-            }}/>
-          )}
-        </Auth.Navigator>
+              // animationTypeForReplace: 'push',
+              headerShown: false,
+              cardStyle: {backgroundColor: 'transparent'},
+            }}
+          />
+        </ErrorStack.Navigator>
       </NavigationContainer>
     );
   }
 }
 
-export default DrinkMixr;
+function mapStateToProps(state) {
+  return {
+    error: state.error,
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    set: data => dispatch({type: 'SET', data: data}),
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(DrinkMixr);

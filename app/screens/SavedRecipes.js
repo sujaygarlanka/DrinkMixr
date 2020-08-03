@@ -11,6 +11,7 @@ export default class SavedRecipes extends Component {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
+          gestureEnabled: false,
         }}>
         <Stack.Screen name="Recipes" component={Recipes} />
         <Stack.Screen name="Edit Recipe" component={EditRecipe} />

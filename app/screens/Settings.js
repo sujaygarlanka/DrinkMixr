@@ -5,15 +5,15 @@ import {
   Image,
   ScrollView,
   RefreshControl,
+  TextInput,
 } from 'react-native';
-import {Button, Text, Input, Block} from 'galio-framework';
+import {connect} from 'react-redux';
+import {Button, Text, Icon} from 'galio-framework';
 import theme from '../constants/theme';
 import constants from '../constants/constants';
 import Title from '../components/Title';
 import SubTitle from '../components/SubTitle';
-
-const username = "Sujay Garlanka";
-const email = "sujay.garlanka@gmail.com";
+import {loadConfiguration, saveSettings} from '../actions/actions';
 
 class Settings extends Component {
   constructor(props) {
@@ -21,37 +21,48 @@ class Settings extends Component {
     this.state = {
       motors: {},
       ingredients: {},
-      refreshing: false,
+      tubes: {},
+      isLoading: false,
     };
   }
 
   componentDidMount() {
-    this.getConfigurationData();
+    this.updateStateFromProps();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps != this.props) {
+      this.updateStateFromProps();
+    }
   }
 
   render() {
     return (
       <ScrollView
-        // contentContainerStyle={{
-        //   flex: 1,
-        // }}
         refreshControl={
           <RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={this.getConfigurationData}
+            refreshing={this.state.isLoading}
+            onRefresh={this.loadSettings}
           />
         }>
         <View style={{flex: 1}}>
           <Title title="Settings" />
           <SubTitle title="Profile" />
-          {/* <View style={{flex: 1}}>
-          <Image
+          <View
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            {/* <Image
             source={{
-              uri: "https://image.flaticon.com/icons/svg/219/219986.svg",
+              uri: "https://img.favpng.com/16/17/19/computer-icons-icon-design-clip-art-user-vector-graphics-png-favpng-4jFsADXTjLh9DsgEyVL9z7AMm.jpg",
             }}
             style={{width: 200, height: 200, borderRadius: 200 / 2}}
-          />
-        </View> */}
+          /> */}
+            <Icon
+              size={theme.SIZES.BASE * 7}
+              name="user"
+              family="antDesign"
+              color={theme.COLORS.INFO}
+            />
+          </View>
           <View style={{alignItems: 'center'}}>
             <Button
               disabled
@@ -59,7 +70,7 @@ class Settings extends Component {
               color={theme.COLORS.TRANSPARENT}
               style={styles.profileInfoFields}>
               <Text center color={theme.COLORS.MUTED}>
-                {username}
+                {constants.USERNAME}
               </Text>
             </Button>
             <Button
@@ -68,7 +79,7 @@ class Settings extends Component {
               color={theme.COLORS.TRANSPARENT}
               style={styles.profileInfoFields}>
               <Text center color={theme.COLORS.MUTED}>
-                {email}
+                {constants.EMAIL}
               </Text>
             </Button>
           </View>
@@ -76,14 +87,31 @@ class Settings extends Component {
           {this.getIngredientsView()}
           <SubTitle title="Motors" />
           {this.getMotorsView()}
+          <SubTitle title="Tubes" />
+          {this.getTubesView()}
           <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingTop: 20,
+              paddingBottom: 20,
+            }}>
             <Button
-              color={theme.COLORS.PRIMARY}
-              shadowColor={theme.COLORS.PRIMARY}
+              color={theme.COLORS.INFO}
+              shadowColor={theme.COLORS.INFO}
               round
-              loading={this.state.refreshing}
-              onPress={() => this.saveConfigurationData()}>
+              loading={this.state.isLoading}
+              onPress={async () => {
+                this.setState({isLoading: true});
+                await this.props.saveSettings(
+                  this.state.ingredients,
+                  this.state.motors,
+                  this.state.tubes,
+                );
+                await this.props.loadConfiguration();
+                this.setState({isLoading: false});
+              }}>
               Save
             </Button>
           </View>
@@ -96,62 +124,45 @@ class Settings extends Component {
     var ingredients = [];
     ingredients.push(
       <View style={{flexDirection: 'row'}}>
-        <View style={{flex: 2, paddingLeft: '5%'}}>
+        <View style={styles.tableLeftCell}>
+          <Text>Motor</Text>
+        </View>
+        <View style={{flex: 1, alignItems: 'center'}}>
           <Text>Ingredient</Text>
         </View>
         <View style={{flex: 1, alignItems: 'center'}}>
           <Text>Amount (oz)</Text>
         </View>
-        <View style={{flex: 1, alignItems: 'center'}}>
-          <Text>Motor</Text>
-        </View>
       </View>,
     );
     Object.entries(this.state.ingredients).map(([ingredient, value]) => {
       ingredients.push(
-        <View style={{flexDirection: 'row'}}>
-          <View style={{flex: 2, paddingLeft: '1%'}}>
-            <Input
-              borderless
+        <View style={styles.tableRow}>
+          <View style={styles.tableLeftCell}>
+            <TextInput
+              style={styles.tableInputCell}
+              defaultValue={value.motor}
+              editable={false}
+            />
+          </View>
+          <View style={{flex: 2}}>
+            <TextInput
+              style={styles.tableInputCell}
+              textAlign="center"
               defaultValue={ingredient}
-              onEndEditing={e =>
-                this.updateIngredients(
-                  ingredient,
-                  e.nativeEvent.text,
-                  null,
-                  null,
-                )
+              onEndEditing={async e =>
+                this.updateIngredients(ingredient, e.nativeEvent.text, null)
               }
             />
           </View>
           <View style={{flex: 1}}>
-            <Input
-              borderless
+            <TextInput
+              style={styles.tableInputCell}
               keyboardType="numeric"
-              textAlign={'center'}
+              textAlign="center"
               defaultValue={String(value.amount)}
               onEndEditing={e =>
-                this.updateIngredients(
-                  ingredient,
-                  null,
-                  e.nativeEvent.text,
-                  null,
-                )
-              }
-            />
-          </View>
-          <View style={{flex: 1}}>
-            <Input
-              borderless
-              textAlign={'center'}
-              defaultValue={value.motor}
-              onEndEditing={e =>
-                this.updateIngredients(
-                  ingredient,
-                  null,
-                  null,
-                  e.nativeEvent.text,
-                )
+                this.updateIngredients(ingredient, null, e.nativeEvent.text)
               }
             />
           </View>
@@ -165,29 +176,29 @@ class Settings extends Component {
     var motors = [];
     motors.push(
       <View style={{flexDirection: 'row'}}>
-        <View style={{flex: 2, paddingLeft: '5%'}}>
+        <View style={styles.tableLeftCell}>
           <Text>Motor Name</Text>
         </View>
-        <View style={{flex: 2, alignItems: 'center'}}>
+        <View style={{flex: 1, alignItems: 'center'}}>
           <Text>Dispense Rate (s/oz)</Text>
         </View>
       </View>,
     );
     Object.entries(this.state.motors).map(([motor, value]) => {
       motors.push(
-        <View style={{flexDirection: 'row'}}>
-          <View style={{flex: 2, paddingLeft: '1%'}}>
-            <Input
-              borderless
+        <View style={styles.tableRow}>
+          <View style={styles.tableLeftCell}>
+            <TextInput
+              style={styles.tableInputCell}
               defaultValue={motor}
-              onEndEditing={e => this.updateMotors(motor, e.nativeEvent.text)}
+              editable={false}
             />
           </View>
-          <View style={{flex: 2}}>
-            <Input
-              borderless
+          <View style={{flex: 1}}>
+            <TextInput
+              style={styles.tableInputCell}
               keyboardType="numeric"
-              textAlign={'center'}
+              textAlign="center"
               defaultValue={String(value)}
               onEndEditing={e => this.updateMotors(motor, e.nativeEvent.text)}
             />
@@ -198,56 +209,72 @@ class Settings extends Component {
     return motors;
   };
 
-  getConfigurationData = () => {
-    this.setState({refreshing: true});
-    fetch(constants.API + '/configuration')
-      .then(response => response.json())
-      .then(responseJson => {
-        this.setState({
-          ingredients: responseJson.ingredients,
-          motors: responseJson.motors,
-          refreshing: false,
-        });
-      })
-      .catch(error => console.log(error)); //to catch the errors if any
+  getTubesView = () => {
+    var tubes = [];
+    tubes.push(
+      <View style={{flexDirection: 'row'}}>
+        <View style={styles.tableLeftCell}>
+          <Text>Tube for Motor</Text>
+        </View>
+        <View style={{flex: 1, alignItems: 'center'}}>
+          <Text>Volume (oz)</Text>
+        </View>
+      </View>,
+    );
+    Object.entries(this.state.tubes).map(([motor, value]) => {
+      tubes.push(
+        <View style={styles.tableRow}>
+          <View style={styles.tableLeftCell}>
+            <TextInput
+              style={styles.tableInputCell}
+              defaultValue={motor}
+              editable={false}
+            />
+          </View>
+          <View style={{flex: 1}}>
+            <TextInput
+              style={styles.tableInputCell}
+              keyboardType="numeric"
+              textAlign="center"
+              defaultValue={String(value)}
+              onEndEditing={e => this.updateTubes(motor, e.nativeEvent.text)}
+            />
+          </View>
+        </View>,
+      );
+    });
+    return tubes;
   };
 
-  saveConfigurationData = async () => {
-    this.setState({refreshing: true});
-    try {
-      await fetch(constants.API + '/ingredients', {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(this.state.ingredients),
-      });
-      await fetch(constants.API + '/motors', {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(this.state.motors),
-      });
-    } catch (e) {
-      console.log(e);
-    }
-    this.setState({refreshing: false});
+  updateStateFromProps = () => {
+    let ingredientsCopy = JSON.parse(JSON.stringify(this.props.ingredients));
+    let motorsCopy = JSON.parse(JSON.stringify(this.props.motors));
+    let tubesCopy = JSON.parse(JSON.stringify(this.props.tubes));
+    this.setState({
+      ingredients: ingredientsCopy,
+      motors: motorsCopy,
+      tubes: tubesCopy,
+    });
   };
 
-  updateIngredients = (ingredient, name, amount, motor) => {
-    var ingredients = this.state.ingredients;
+  loadSettings = async () => {
+    this.setState({isLoading: true});
+    let response = await this.props.loadConfiguration();
+    response = JSON.parse(JSON.stringify(response));
+    this.setState({
+      isLoading: false,
+      ingredients: response.ingredients,
+      motors: response.motors,
+      tubes: response.tubes,
+    });
+  };
+
+  updateIngredients = (ingredient, name, amount) => {
+    let ingredients = this.state.ingredients;
     if (amount) {
       ingredients[ingredient].amount = parseFloat(amount);
     }
-    if (motor) {
-      console.log(motor);
-      ingredients[ingredient].motor = motor;
-    }
-    if (name) {
-      console.log(name);
+    if (name && name != ingredient) {
       ingredients[name] = ingredients[ingredient];
       delete ingredients[ingredient];
     }
@@ -255,17 +282,55 @@ class Settings extends Component {
   };
 
   updateMotors = (motor, time) => {
-    var motors = this.state.motors;
+    let motors = this.state.motors;
     motors[motor] = parseFloat(time);
     this.setState({motors});
   };
+
+  updateTubes = (motor, length) => {
+    let tubes = this.state.tubes;
+    tubes[motor] = parseFloat(length);
+    this.setState({tubes});
+  };
 }
 
-export default Settings;
+function mapStateToProps(state) {
+  return {
+    ingredients: state.ingredients,
+    motors: state.motors,
+    tubes: state.tubes,
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    loadConfiguration: () => dispatch(loadConfiguration()),
+    saveSettings: (ingredients, motors, tubes) =>
+      dispatch(saveSettings(ingredients, motors, tubes)),
+    set: data => dispatch({type: 'SET', data: data}),
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Settings);
 
 const styles = StyleSheet.create({
   profileInfoFields: {
     borderColor: theme.COLORS.MUTED,
     marginVertical: 10,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    height: 50,
+  },
+  tableLeftCell: {
+    flex: 1,
+    paddingLeft: '5.5%',
+  },
+  tableInputCell: {
+    flex: 1,
+    color: theme.COLORS.GREY,
   },
 });
