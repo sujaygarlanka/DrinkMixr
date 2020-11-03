@@ -1,0 +1,6 @@
+module Pods_DrinkMixr_DrinkMixrTests {
+  umbrella header "Pods-DrinkMixr-DrinkMixrTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
