@@ -11,6 +11,8 @@ A physical machine that is 3d printed and MDF cut and contains tubing and motors
 
 ## Mobile App
 
+<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/app-demo.gif" width="300px"/>
+
 A mobile built in React Native that allows you to customize, save and send recipes to the drink machine when you tap your phone to the machine. Code for the 
 app can be found [here](https://github.com/sujaygarlanka/DrinkMixr).
 
