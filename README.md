@@ -11,7 +11,7 @@ A physical machine that is 3d printed and MDF cut and contains tubing and motors
 
 ## Mobile App
 
-<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/app-demo.gif" width="300px"/>
+<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/app-demo.gif" width="250px"/>
 
 A mobile built in React Native that allows you to customize, save and send recipes to the drink machine when you tap your phone to the machine. Code for the 
 app can be found [here](https://github.com/sujaygarlanka/DrinkMixr).
@@ -24,6 +24,7 @@ An API writtne in Python Flask running on a heroku server that accepts orders se
 
 ### Gets order  
 **GET /order**
+
 **Response**
 ```
 sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
