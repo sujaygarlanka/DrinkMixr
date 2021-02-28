@@ -22,7 +22,7 @@ An API writtne in Python Flask running on a heroku server that accepts orders se
 
 ### API Doc (Very Incomplete):
 
-### Gets order  
+### Get order  
 **GET /order**
 
 **Response**
@@ -44,7 +44,7 @@ sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
 }
 ```
 
-### Creates user  
+### Create user  
 **POST /user**
 **Body**
 ```
