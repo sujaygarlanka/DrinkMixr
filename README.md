@@ -1,23 +1,39 @@
 # DrinkMixr
-- Mobile app and other related materials for the drink mixing machine.
-- Embedded system code can be found here: https://github.com/sujaygarlanka/DrinkMixr-Raspberry-Pi
+A friend and I built a drink mixing machine that can dispense up to 4 liquids with half an ounce accuracy in any combination. There are three parts to this project.
 
-## API Doc (Incomplete):
+- [Drink Machine](#drink-machine)
+- [Mobile App](#mobile-app)
+- [API](#api)
 
-### GET /order
-Gets order  
-Response:
+## Drink Machine
+
+A physical machine that is 3d printed and MDF cut and contains tubing and motors controlled by a Raspberry Pi. It runs embedded Pi code that can be found [here](https://github.com/sujaygarlanka/DrinkMixr-Raspberry-Pi).
+
+## Mobile App
+
+A mobile built in React Native that allows you to customize, save and send recipes to the drink machine when you tap your phone to the machine. Code for the 
+app can be found [here](https://github.com/sujaygarlanka/DrinkMixr).
+
+## API
+
+An API writtne in Python Flask running on a heroku server that accepts orders sent from the mobile app, queues them and sends them to the machine when it is ready to dispense. This API also handles the creation of users, tracking how much a user drinks, storing machine settings, etc. The API uses a MongoDB database to store all information.
+
+###API Doc (Very Incomplete):
+
+### Gets order  
+**GET /order**
+**Response**
 ```
 sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
 ```
 
-### POST /order
-Sends order  
-Body:
+### Send order 
+**POST /order**
+**Body**
 ```
 {
 	"user_name": "sujay",
-	“priming”: false,
+	"priming": false,
 	"order": {
 		"lemon_juice": 5.5,
 		"apple_juice": 5.8
@@ -25,9 +41,9 @@ Body:
 }
 ```
 
-### POST /user
-Creates user  
-Body:  
+### Creates user  
+**POST /user**
+**Body**
 ```
 {
 	"name": "sujay"
