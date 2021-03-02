@@ -32,6 +32,7 @@ sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
 
 ### Send order 
 **POST /order**
+
 **Body**
 ```
 {
@@ -46,6 +47,7 @@ sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
 
 ### Create user  
 **POST /user**
+
 **Body**
 ```
 {
