@@ -50,13 +50,15 @@ An API written in Python Flask running on a heroku server that accepts orders se
 	```
 
 - ### POST /user
-	Create a user  
+	Create a user
+	
 	**Body**
 	```
 	{
 		"name": "sujay"
 	}
 	```
+	
 - ### GET /ingredients
  	Get ingredients in the machine
 	
