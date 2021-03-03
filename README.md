@@ -9,7 +9,9 @@ A friend and I built a drink mixing machine that can dispense up to 4 liquids wi
 
 A physical machine that is 3D printed and MDF cut and contains tubing and motors controlled by a Raspberry Pi. It runs embedded python code that can be found [here](https://github.com/sujaygarlanka/DrinkMixr-Raspberry-Pi).
 
-<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/machine.jpg" width="350px"/>
+Final Machine              |  3D Model
+:-------------------------:|:-------------------------:
+<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/machine.jpg" width="350px"/> |  <img style="display: inline" src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/machine-3D.png" width="350px"/>
 
 ## Mobile App
 
