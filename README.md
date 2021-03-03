@@ -26,35 +26,45 @@ An API written in Python Flask running on a heroku server that accepts orders se
 
 ### API Doc (Very Incomplete):
 
-### Get order  
-**GET /order**
+- ### GET /order  
+	Get an order from the API for the machine to process
 
-**Response**
-```
-sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
-```
+	**Response**
+	```
+	sujay-11.7:lemon_juice-1-32.4:apple_juice-0-44.2
+	```
 
-### Send order 
-**POST /order**
+- ### POST /order 
+	Send an order to the machine
 
-**Body**
-```
-{
-	"user_name": "sujay",
-	"priming": false,
-	"order": {
-		"lemon_juice": 5.5,
-		"apple_juice": 5.8
+	**Body**
+	```
+	{
+		"user_name": "sujay",
+		"priming": false,
+		"order": {
+			"lemon_juice": 5.5,
+			"apple_juice": 5.8
+		}
 	}
-}
-```
+	```
 
-### Create user  
-**POST /user**
-
-**Body**
-```
-{
-	"name": "sujay"
-}
-```
+- ### POST /user
+	Create a user  
+	**Body**
+	```
+	{
+		"name": "sujay"
+	}
+	```
+- ### GET /ingredients
+ 	Get ingredients in the machine
+	
+- ### GET /receipes
+	Get saved recipes for a user
+	
+- ### POST /recipes
+	Add a saved recipe for a user
+	
+- ### DELETE /recipes
+	Delete a saved recipe for a user
