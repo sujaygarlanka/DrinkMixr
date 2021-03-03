@@ -7,7 +7,7 @@ A friend and I built a drink mixing machine that can dispense up to 4 liquids wi
 
 ## Drink Machine
 
-A physical machine that is 3d printed and MDF cut and contains tubing and motors controlled by a Raspberry Pi. It runs embedded Pi code that can be found [here](https://github.com/sujaygarlanka/DrinkMixr-Raspberry-Pi).
+A physical machine that is 3D printed and MDF cut and contains tubing and motors controlled by a Raspberry Pi. It runs embedded python code that can be found [here](https://github.com/sujaygarlanka/DrinkMixr-Raspberry-Pi).
 
 ## Mobile App
 
