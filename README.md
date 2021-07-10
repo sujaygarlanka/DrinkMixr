@@ -1,6 +1,8 @@
 # DrinkMixr
 A friend and I built a drink mixing machine that can dispense up to 4 liquids with half an ounce accuracy in any combination. There are three parts to this project.
 
+<img width="450px" src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/DrinkMixr-demo.gif"/>
+
 - [Drink Machine](#drink-machine)
 - [Mobile App](#mobile-app)
 - [API](#api)
