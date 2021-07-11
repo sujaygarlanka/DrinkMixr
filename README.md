@@ -1,7 +1,7 @@
 # DrinkMixr
 
-<img height="450px" src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/DrinkMixr-demo.gif"/>
-</br>
+<img height="450px" src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/DrinkMixr-demo.gif"/>. 
+
 A friend and I built a drink mixing machine that can dispense up to 4 liquids with half an ounce accuracy in any combination. There are three parts to this project.
 
 - [Drink Machine](#drink-machine)
@@ -18,10 +18,10 @@ Final Machine              |  3D Model
 
 ## Mobile App
 
-<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/app-demo.gif" width="250px"/>
-</br>
+<img src="https://raw.githubusercontent.com/sujaygarlanka/DrinkMixr/master/media/app-demo.gif" width="250px"/>. 
+
 A mobile built in React Native that allows you to customize, save and send recipes to the drink machine when you tap your phone to the machine. Code for the 
-app can be found [here](https://github.com/sujaygarlanka/DrinkMixr).
+app can be found [here](https://github.com/sujaygarlanka/DrinkMixr/tree/master/mobile_app).
 
 ## API
 
