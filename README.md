@@ -27,7 +27,7 @@ app can be found [here](https://github.com/sujaygarlanka/DrinkMixr/tree/master/m
 
 An API written in Python Flask running on a heroku server that accepts orders sent from the mobile app, queues them and sends them to the machine when it is ready to dispense. This API also handles the creation of users, tracking how much a user drinks, storing machine settings, etc. The API uses a MongoDB database to store all information.
 
-### API Doc (Very Incomplete):
+### API Doc (Incomplete):
 
 - ### GET /order  
 	Get an order from the API for the machine to process
